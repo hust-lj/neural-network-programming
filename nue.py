@@ -61,6 +61,7 @@ if __name__ == '__main__':
     recognition_rate = input('请输入期望的识别率：')
     #初始识别率
     r_rate = 0
+    r_rate_max = 0
 
 
     # 读取训练集数据
@@ -101,4 +102,16 @@ if __name__ == '__main__':
                 right_list.append(0)
 
         r_rate = float( right_list.count(1))/float(len(right_list))
+        
+        if r_rate > r_rate_max :
+            r_rate_max_i = 0
+            r_rate_max = r_rate
+        else:
+            r_rate_max_i += 1
+
+        # 判断当前训练数据是否达到饱和识别率
+        if r_rate_max_i > 10:
+            print '当前训练数据所能达到最大识别率为：%f' % (r_rate_max)
+            break
+
         print '当前识别率为：%f'%(r_rate)
