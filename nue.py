@@ -16,7 +16,7 @@ class NeuralNetwork:
         self.who = numpy.random.normal(0.0,pow(self.onodes,-0.5),(self.onodes,self.hnodes))
 
         # 初始化生成S（激活）函数：y=1/(1+e^(-x))
-        self.activation_function = lambda x:scipy.special.expit(x)
+        self.active_function = lambda x:scipy.special.expit(x)
 
     # 数据训练函数
     def train(self,input_list,target_list):
@@ -29,13 +29,13 @@ class NeuralNetwork:
         hidden_input = numpy.dot(self.wih,inputs)
 
         # 隐藏层的输入数据作为参数经过S函数后可得隐藏层的输出数据
-        hidden_out = self.activation_function(hidden_input)
+        hidden_out = self.active_function(hidden_input)
 
         # 隐藏层的输出数据与隐藏和输出间权重相乘作为输出层的输入数据
         final_input = numpy.dot(self.who,hidden_out)
 
         # 输出层的输入数据作为参数经过S函数后可得输出层的输出数据，即最后输出数据
-        final_out = self.activation_function(final_input)
+        final_out = self.active_function(final_input)
 
         # 计算期望数据与输出数据间的误差
         output_error = targets - final_out
@@ -52,9 +52,9 @@ class NeuralNetwork:
     def query(self,input_list):
         inputs = numpy.array(input_list,ndmin=2).T
         hidden_input = numpy.dot(self.wih,inputs)
-        hidden_out = self.activation_function(hidden_input)
+        hidden_out = self.active_function(hidden_input)
         final_input = numpy.dot(self.who,hidden_out)
-        final_out = self.activation_function(final_input)
+        final_out = self.active_function(final_input)
         return final_out
 
 if __name__ == '__main__':
@@ -64,34 +64,34 @@ if __name__ == '__main__':
 
 
     # 读取训练集数据
-    with open('mnist_train_100.csv') as f:
+    with open('train_set_10000.csv') as f:
         train_data_list = f.readlines()
     # 读取测试集数据
-    with open('mnist_test_10.csv') as f:
+    with open('test_set_1000.csv') as f:
         test_data_list = f.readlines()
 
     # 实例化一个神经网络对象，输入数据数值一般根据该图片的像素进行确定
-    n=NeuralNetwork(784,200,10,0.1)
+    n=NeuralNetwork(784,100,10,0.1)
 
     while r_rate < recognition_rate:
-        for i in range(10):
-            for line in train_data_list:
-                all_values = line.split(',')
-                # 将输入数据转为小于1的形式，方便激活函数的计算
-                inputs = (numpy.asfarray(all_values[1:]) / 255.0 * 0.99) + 0.01
 
-                # 将对应的期望数据转为对应0.01-0.09的列表
-                targets = numpy.zeros(10)+0.01
-                targets[int(all_values[0])] = 0.99
+        for line in train_data_list:
+            all_values = line.split(',')
+            # 将输入数据转化为小于1的形式，方便激活函数的计算
+            inputs = (numpy.asfarray(all_values[1:]) / 255.0 * 0.999) + 0.001
 
-                # 开始训练模型
-                n.train(inputs,targets)
+            # 将对应的期望数据转为对应0.01-0.09的列表
+            targets = numpy.zeros(10)+0.001
+            targets[int(all_values[0])] = 0.999
+
+            # 开始训练模型
+            n.train(inputs,targets)
 
         #开始测试数据并获取识别率
         right_list = []
         for line in test_data_list:
             all_values = line.split(',')
-            inputs = (numpy.asfarray(all_values[1:]) / 255.0 * 0.99) + 0.01
+            inputs = (numpy.asfarray(all_values[1:]) / 255.0 * 0.999) + 0.001
             out = n.query(inputs)
             # 获取该列表中最大数值的索引
             label = numpy.argmax(out)
@@ -101,4 +101,4 @@ if __name__ == '__main__':
                 right_list.append(0)
 
         r_rate = float( right_list.count(1))/float(len(right_list))
-    print r_rate
+        print '当前识别率为：%f'%(r_rate)
